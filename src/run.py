@@ -37,7 +37,7 @@ def parse_arguments():
     parser.add_argument('--batch', type=int, default=32, help='batch size')
     parser.add_argument('--datasize', '-s', type=int, default=-1, help='data size')
     parser.add_argument('--verbose', type=int, default=-0, help='verbose 0 (silent), 1 (detailed output)')
-    parser.add_argument('--savedata', type=bool, default=True, help='save your data as npz')
+    parser.add_argument('--savedata', type=int, default=1, help='save your data as npz')
 
     args = parser.parse_args()
     return args
