@@ -49,6 +49,8 @@ feature_xtract_map = {
     'cqt': calc_cqt,
     'stft': calc_stft
 }
+if feature_type not in feature_xtract_map:
+    raise ValueError(f'feature type "{feature_type}" not exist!')
 
 # model type
 model_type = args.model
@@ -56,6 +58,8 @@ model_build_map = {
     'lcnn': build_lcnn,
     'lcnn-lstm': build_lcnn_lstm,
 }
+if model_type not in model_build_map:
+    raise ValueError(f'model type "{model_type}" not exist!')
 
 # Replace the path to protcol of ASV2019 depending on your environment.
 protocol_tr = "./protocol/train_protocol.csv"
