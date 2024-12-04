@@ -1,0 +1,11 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# project files
+LA/
+src/poc.ipynb
+src/__cache__/
+src/my_job.sh

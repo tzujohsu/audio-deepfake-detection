@@ -1,0 +1,13 @@
+librosa==0.10.2
+matplotlib==3.9.2
+numpy==1.26.4
+pandas==2.2.2
+pytest
+scikit-learn==1.5.1
+scipy==1.14.1
+sentence-transformers==3.2.1
+spacy==3.8.2
+transformers==4.46.2
+tensorflow==2.18.0
+keras==3.7.0
+torch==2.5.1
