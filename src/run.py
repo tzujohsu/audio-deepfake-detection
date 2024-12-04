@@ -2,7 +2,7 @@ import pandas as pd
 from keras.callbacks import EarlyStopping, ModelCheckpoint
 from keras.optimizers import Adam
 
-from feature import calc_cqt, calc_stft, save_feature, load_feature
+from feature import calc_cqt, calc_stft, calc_wav2vec, save_feature, load_feature
 from metrics import calculate_eer, calculate_classifier_metrics
 from sklearn.utils import shuffle
 
@@ -54,7 +54,8 @@ for k,v in args.__dict__.items(): print(f'> args: {CRED} {k} {CEND}, value: {CRE
 feature_type = args.feature
 feature_xtract_map = {
     'cqt': calc_cqt,
-    'stft': calc_stft
+    'stft': calc_stft,
+    'wav2vec': calc_wav2vec
 }
 if feature_type not in feature_xtract_map:
     raise ValueError(f'feature type "{feature_type}" not exist!')
@@ -77,7 +78,7 @@ protocol_eval = "./protocol/eval_protocol.csv"
 # Choose access type PA or LA.
 # Replace 'asvspoof_database/ to your database path.
 access_type = "LA"
-path_to_database = "/home/tzujohsu/audio-deepfake/" + access_type
+path_to_database = "/home/uniqname/audio-deepfake-detection/" + access_type
 path_tr = path_to_database + "/ASVspoof2019_" + access_type + "_train/flac/"
 path_dev = path_to_database + "/ASVspoof2019_" + access_type + "_dev/flac/"
 path_eval = path_to_database + "/ASVspoof2019_" + access_type + "_eval/flac/"

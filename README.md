@@ -43,7 +43,7 @@ git add --all
 Next, commit your files. You can do so with this command:
 
 ```bash
-git commit -m [a brief message describing your changes]
+git commit -m "[a brief message describing your changes]"
 ```
 
 Finally, push your changes with the following command:
@@ -62,8 +62,8 @@ pip install -r requirements.txt
 Download and unzip AsvSpoof 2019 LA files
 
 ```bash
-!wget https://datashare.ed.ac.uk/bitstream/handle/10283/3336/LA.zip
-!unzip LA.zip
+wget https://datashare.ed.ac.uk/bitstream/handle/10283/3336/LA.zip
+unzip LA.zip
 ```
 
 This should give you the following dir:
@@ -88,6 +88,13 @@ audio-deepfake
     └── run.py
 
 ```
+
+Before running the experiment, remember to change the path to include your uniqname:
+
+```
+path_to_database = "/home/[uniqname]/audio-deepfake-detection/" + access_type
+```
+
 Run the experiment by the following command:
 
 ``` bash
@@ -98,6 +105,7 @@ python run.py \
     --epochs 100 \
     --batch 32 \
 ```
+
 Before you run the experiement on the full dataset, you can set the dataset size to 1000 and verbose to 1 for quick verification.
 ```bash
 python run.py \

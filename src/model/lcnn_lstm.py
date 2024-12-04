@@ -2,10 +2,11 @@
 from typing import List
 
 import tensorflow as tf
-from keras.layers import BatchNormalization, Dense, Dropout, Flatten, Input, MaxPool2D
+from keras.layers import Layer, BatchNormalization, Dense, Dropout, Flatten, Input, MaxPool2D, Permute, Multiply, Lambda, GlobalAveragePooling1D
 from keras.layers import Conv2D, LSTM
 from keras.models import Model
 from tensorflow.keras.layers import Reshape
+from tensorflow.keras import backend as K
 
 from .layers import Maxout
 
@@ -49,33 +50,62 @@ def MaxOutDense(x: tf.Tensor, dim: int) -> tf.Tensor:
     mfm_out = Maxout(int(dim / 2))(dense_out)
     return mfm_out
 
+class SelfAttentivePooling(Layer):
+    def __init__(self, **kwargs):
+        super(SelfAttentivePooling, self).__init__(**kwargs)
+
+    def build(self, input_shape):
+        self.attention_dense = Dense(1, activation='tanh')
+        super(SelfAttentivePooling, self).build(input_shape)
+
+    def call(self, x):
+        # Compute attention scores
+        u = self.attention_dense(x)
+        u = Permute((2, 1))(u)
+        u = Lambda(lambda x: K.softmax(x, axis=2))(u)
+        u = Permute((2, 1))(u)
+
+        # Apply attention scores
+        out = Multiply()([x, u])
+        out = Lambda(lambda x: K.sum(x, axis=1))(out)
+        return out
 
 
 def build_lcnn_lstm(shape: List[int], n_label: int = 2) -> tf.keras.Model:
     input = Input(shape=shape)
 
-    # First Conv Block
+##############################################
+
     conv2d_1 = MaxOutConv2D(input, 64, kernel_size=5, strides=1, padding="same")
     maxpool_1 = MaxPool2D(pool_size=(2, 2), strides=(2, 2))(conv2d_1)
 
-   # Second Conv Block
     conv_2d_2 = MaxOutConv2D(maxpool_1, 64, kernel_size=1, strides=1, padding="same")
     batch_norm_2 = BatchNormalization()(conv_2d_2)
 
-    # Third Conv Block
     conv2d_3 = MaxOutConv2D(batch_norm_2, 96, kernel_size=3, strides=1, padding="same")
     maxpool_3 = MaxPool2D(pool_size=(2, 2), strides=(2, 2))(conv2d_3)
     batch_norm_3 = BatchNormalization()(maxpool_3)
 
-    # Fourth Conv Block
-    conv2d_4 = MaxOutConv2D(batch_norm_3, 64, kernel_size=3, strides=1, padding="same")
-    maxpool_4 = MaxPool2D(pool_size=(2, 2), strides=(2, 2))(conv2d_4)
-    batch_norm_4 = BatchNormalization()(maxpool_4)
+    conv_2d_4 = MaxOutConv2D(batch_norm_3, 96, kernel_size=1, strides=1, padding="same")
+    batch_norm_4 = BatchNormalization()(conv_2d_4)
 
-    # Fifth Conv Block
-    conv2d_5 = MaxOutConv2D(batch_norm_4, 64, kernel_size=3, strides=1, padding="same")
+    conv2d_5 = MaxOutConv2D(batch_norm_4, 128, kernel_size=3, strides=1, padding="same")
     maxpool_5 = MaxPool2D(pool_size=(2, 2), strides=(2, 2))(conv2d_5)
-    flatten = Flatten()(maxpool_5)
+
+    conv_2d_6 = MaxOutConv2D(maxpool_5, 128, kernel_size=1, strides=1, padding="same")
+    batch_norm_6 = BatchNormalization()(conv_2d_6)
+
+    conv_2d_7 = MaxOutConv2D(batch_norm_6, 64, kernel_size=3, strides=1, padding="same")
+    batch_norm_7 = BatchNormalization()(conv_2d_7)
+
+    conv_2d_8 = MaxOutConv2D(batch_norm_7, 64, kernel_size=1, strides=1, padding="same")
+    batch_norm_8 = BatchNormalization()(conv_2d_8)
+
+    conv_2d_9 = MaxOutConv2D(batch_norm_8, 64, kernel_size=3, strides=1, padding="same")
+    maxpool_9 = MaxPool2D(pool_size=(2, 2), strides=(2, 2))(conv_2d_9)
+    flatten = Flatten()(maxpool_9)
+
+###############################################
 
     # Dense Layer
     dense = MaxOutDense(flatten, 128)
@@ -86,8 +116,11 @@ def build_lcnn_lstm(shape: List[int], n_label: int = 2) -> tf.keras.Model:
 
     # LSTM Layer
     lstm = LSTM(64, return_sequences=False)(reshape)
+    gap = GlobalAveragePooling1D()(lstm)
+    sap = SelfAttentivePooling()(gap)
+
     # batch_norm_lstm = BatchNormalization()(lstm)
-    dense_lstm = MaxOutDense(lstm, 64)
+    dense_lstm = MaxOutDense(sap, 64)
     batch_norm_lstm = BatchNormalization()(dense_lstm)
     
     # Output Layer
