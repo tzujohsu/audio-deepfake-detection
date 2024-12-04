@@ -56,8 +56,10 @@ def calc_stft(protocol_df: pd.DataFrame, path: str, size = -1) -> Tuple[np.ndarr
      data: spectrograms that have 4 dimentions like (n_samples, height, width, 1)
      label: 0 = Genuine, 1 = Spoof
     """
+    protocol_df_list = list(protocol_df["utt_id"])
     if size > 0:
-        protocol_df_list = list(protocol_df["utt_id"])[:size]
+        protocol_df_list = protocol_df_list[:size]
+    
 
     data = []
     for audio in tqdm(protocol_df_list):
@@ -150,12 +152,23 @@ def _extract_label(protocol: pd.DataFrame, size: int) -> np.ndarray:
     return labels.astype(int)
 
 
-def save_feature(feature: np.ndarray, path: str):
-    """Save spectrograms as a binary file.
+def save_feature(x: np.ndarray, y:np.ndarray, path: str):
+    """Save spectrograms as a compressed npz file.
 
     Args:
         feature (np.ndarray): Spectrograms with 4 dimensional shape like (n_samples, height, width, 1)
         path (str): Path for saving.
     """
-    with open(path, "wb") as web:
-        pickle.dump(feature, web, protocol=4)
+    np.savez_compressed(path, x=x, y=y)
+
+
+def load_feature(path: str):
+    """load specified features
+
+    Args:
+        feature (np.ndarray): Spectrograms with 4 dimensional shape like (n_samples, height, width, 1)
+        path (str): Path for saving.
+    """
+    
+    npz_loaded = np.load(path)
+    return npz_loaded['x'], npz_loaded['y']

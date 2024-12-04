@@ -2,11 +2,13 @@ import pandas as pd
 from keras.callbacks import EarlyStopping, ModelCheckpoint
 from keras.optimizers import Adam
 
-from feature import calc_cqt, calc_stft, save_feature
+from feature import calc_cqt, calc_stft, save_feature, load_feature
 from metrics import calculate_eer, calculate_classifier_metrics
+from sklearn.utils import shuffle
 
 from model.lcnn import build_lcnn
 from model.lcnn_lstm import build_lcnn_lstm
+from model.resnet18 import build_resnet
 
 import argparse
 import numpy as np
@@ -14,10 +16,14 @@ import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 # ---------------------------------------------------------------------------------------------------------------------------------------
-# cache
+# cache and data
 cache = '__cache__'
 if not os.path.exists(cache):
     os.makedirs(cache)
+
+log = '__log__'
+if not os.path.exists(log):
+    os.makedirs(log)
 
 job_id = os.getenv('SLURM_JOB_ID')
 
@@ -31,6 +37,7 @@ def parse_arguments():
     parser.add_argument('--batch', type=int, default=32, help='batch size')
     parser.add_argument('--datasize', '-s', type=int, default=-1, help='data size')
     parser.add_argument('--verbose', type=int, default=-0, help='verbose 0 (silent), 1 (detailed output)')
+    parser.add_argument('--savedata', type=bool, default=True, help='save your data as npz')
 
     args = parser.parse_args()
     return args
@@ -57,6 +64,7 @@ model_type = args.model
 model_build_map = {
     'lcnn': build_lcnn,
     'lcnn-lstm': build_lcnn_lstm,
+    'resnet': build_resnet
 }
 if model_type not in model_build_map:
     raise ValueError(f'model type "{model_type}" not exist!')
@@ -83,11 +91,26 @@ if __name__ == "__main__":
 
     
     print("Extracting train data...")
-    x_train, y_train = feature_xtract_map[feature_type](df_tr, path_tr, args.datasize)
+    if os.path.exists(cache + f'/{feature_type}-train.npz'):
+        x_train, y_train = load_feature(cache + f'/{feature_type}-train.npz')
+    else:
+        x_train, y_train = feature_xtract_map[feature_type](df_tr, path_tr, args.datasize)
+        if args.savedata: save_feature(x_train, y_train, cache + '/train.npz')
+    
+    x_train, y_train = shuffle(x_train, y_train)
+    if args.datasize > 0: x_train, y_train = x_train[:args.datasize], y_train[:args.datasize]
+
     
     
     print("Extracting dev data...")
-    x_val, y_val = feature_xtract_map[feature_type](df_dev, path_dev, args.datasize)
+    if os.path.exists(cache + f'/{feature_type}-dev.npz'):
+        x_val, y_val = load_feature(cache + f'/{feature_type}-dev.npz')
+    else:
+        x_val, y_val = feature_xtract_map[feature_type](df_dev, path_dev, args.datasize)
+        if args.savedata: save_feature(x_val, y_val, cache + f'/{feature_type}-dev.npz')
+
+    x_val, y_val = shuffle(x_val, y_val)
+    if args.datasize > 0: x_val, y_val = x_val[:args.datasize], y_val[:args.datasize]
         
     print('Model Building...')
     input_shape = x_train.shape[1:]
@@ -102,7 +125,7 @@ if __name__ == "__main__":
     # Callbacks
     es = EarlyStopping(monitor="val_loss", patience=8, verbose=args.verbose)
     cp_cb = ModelCheckpoint(
-        filepath=f"{cache}/model-{model_type}-{feature_type}-{job_id}.keras",
+        filepath=f"{log}/model-{model_type}-{feature_type}-{job_id}.keras",
         monitor="val_loss",
         verbose=args.verbose,
         save_best_only=True,
@@ -117,20 +140,28 @@ if __name__ == "__main__":
         batch_size=args.batch,
         validation_data=[x_val, y_val],
         callbacks=[es, cp_cb],
+        verbose=args.verbose,
     )
+    # print("Training history: ", history)
+
     del x_train, x_val
     print('Training done!')
 
     # Eval model
     print("Extracting eval data ...")
-    df_eval = pd.read_csv(protocol_eval)
-
+    df_eval = pd.read_csv(protocol_eval)    
+    if args.datasize < 0 and os.path.exists(cache + f'/{feature_type}-eval.npz'):
+        x_eval, y_eval = load_feature(cache + f'/{feature_type}-eval.npz')
+    else:
+        x_eval, y_eval = feature_xtract_map[feature_type](df_eval, path_eval, args.datasize)
+        if args.savedata: save_feature(x_eval, y_eval, cache + f'/{feature_type}-eval.npz')
     
-    x_eval, y_eval = feature_xtract_map[feature_type](df_eval, path_eval, args.datasize)
+    x_train, y_train = shuffle(x_train, y_train)
+    if args.datasize > 0: x_train, y_train = x_train[:args.datasize], y_train[:args.datasize]
 
     # predict
     print("Evaluating on eval data ...")
-    pred = model.predict(x_eval)
+    pred = model.predict(x_eval, verbose = args.verbose)
 
     score = pred[:, 0] - pred[:, 1]  # Get likelihood
     eer = calculate_eer(y_eval, score)  # Get EER score
@@ -150,6 +181,6 @@ if __name__ == "__main__":
         })
 
     # Save the DataFrame to a CSV file
-    results_df.to_csv(f'{cache}/predictions-{model_type}-{feature_type}-{job_id}.csv', index=False)
+    results_df.to_csv(f'{log}/predictions-{model_type}-{feature_type}-{job_id}.csv', index=False)
 
     print("You've made it! Have a wonderful day")

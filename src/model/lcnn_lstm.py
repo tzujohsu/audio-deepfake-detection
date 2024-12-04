@@ -58,24 +58,28 @@ def build_lcnn_lstm(shape: List[int], n_label: int = 2) -> tf.keras.Model:
     conv2d_1 = MaxOutConv2D(input, 64, kernel_size=5, strides=1, padding="same")
     maxpool_1 = MaxPool2D(pool_size=(2, 2), strides=(2, 2))(conv2d_1)
 
-    # Second Conv Block
-    conv2d_2 = MaxOutConv2D(maxpool_1, 96, kernel_size=3, strides=1, padding="same")
-    maxpool_2 = MaxPool2D(pool_size=(2, 2), strides=(2, 2))(conv2d_2)
-    batch_norm_2 = BatchNormalization()(maxpool_2)
+   # Second Conv Block
+    conv_2d_2 = MaxOutConv2D(maxpool_1, 64, kernel_size=1, strides=1, padding="same")
+    batch_norm_2 = BatchNormalization()(conv_2d_2)
 
     # Third Conv Block
-    conv2d_3 = MaxOutConv2D(batch_norm_2, 64, kernel_size=3, strides=1, padding="same")
+    conv2d_3 = MaxOutConv2D(batch_norm_2, 96, kernel_size=3, strides=1, padding="same")
     maxpool_3 = MaxPool2D(pool_size=(2, 2), strides=(2, 2))(conv2d_3)
     batch_norm_3 = BatchNormalization()(maxpool_3)
 
     # Fourth Conv Block
     conv2d_4 = MaxOutConv2D(batch_norm_3, 64, kernel_size=3, strides=1, padding="same")
     maxpool_4 = MaxPool2D(pool_size=(2, 2), strides=(2, 2))(conv2d_4)
-    flatten = Flatten()(maxpool_4)
+    batch_norm_4 = BatchNormalization()(maxpool_4)
+
+    # Fifth Conv Block
+    conv2d_5 = MaxOutConv2D(batch_norm_4, 64, kernel_size=3, strides=1, padding="same")
+    maxpool_5 = MaxPool2D(pool_size=(2, 2), strides=(2, 2))(conv2d_5)
+    flatten = Flatten()(maxpool_5)
 
     # Dense Layer
     dense = MaxOutDense(flatten, 128)
-    # dropout = Dropout(0.25)(dense)
+    dense = Dropout(0.25)(dense)
 
     # Reshape for LSTM
     reshape = Reshape((1, 64))(dense)
@@ -86,9 +90,7 @@ def build_lcnn_lstm(shape: List[int], n_label: int = 2) -> tf.keras.Model:
     dense_lstm = MaxOutDense(lstm, 64)
     batch_norm_lstm = BatchNormalization()(dense_lstm)
     
-    
-
     # Output Layer
-    output = Dense(n_label, activation="softmax")(batch_norm_lstm)
+    output = Dense(n_label, activation="sigmoid")(batch_norm_lstm)
 
     return Model(inputs=input, outputs=output)

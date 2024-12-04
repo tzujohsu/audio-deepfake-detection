@@ -53,6 +53,7 @@ python run.py \
     --epochs 100 \
     --batch 32 \
     --datasize 1000 \
-    --verbose 1
+    --verbose 1 \
+    --savedata False
 ```
 

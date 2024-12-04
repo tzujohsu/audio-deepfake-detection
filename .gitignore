@@ -8,5 +8,6 @@ __pycache__/
 LA/
 src/poc.ipynb
 src/__cache__/
+src/__log__/
 src/my_job.sh
 src/shortcut.txt
