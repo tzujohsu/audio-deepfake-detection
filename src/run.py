@@ -156,8 +156,8 @@ if __name__ == "__main__":
         x_eval, y_eval = feature_xtract_map[feature_type](df_eval, path_eval, args.datasize)
         if args.savedata: save_feature(x_eval, y_eval, cache + f'/{feature_type}-eval.npz')
     
-    x_train, y_train = shuffle(x_train, y_train)
-    if args.datasize > 0: x_train, y_train = x_train[:args.datasize], y_train[:args.datasize]
+    x_eval, y_eval = shuffle(x_eval, y_eval)
+    if args.datasize > 0: x_eval, y_eval = x_eval[:args.datasize], y_eval[:args.datasize]
 
     # predict
     print("Evaluating on eval data ...")
