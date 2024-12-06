@@ -7,7 +7,7 @@ import pandas as pd
 import scipy
 from tqdm import tqdm
 
-from transformers import AutoFeatureExtractor, Wav2Vec2FeatureExtractor, TFWav2Vec2Model, Wav2Vec2Processor
+# from transformers import AutoFeatureExtractor, Wav2Vec2FeatureExtractor, TFWav2Vec2Model, Wav2Vec2Processor
 
 #%% STFT
 def _preEmphasis(wave: np.ndarray, p=0.97) -> np.ndarray:
@@ -135,38 +135,38 @@ def calc_cqt(protocol_df: pd.DataFrame, path: str, size = -1) -> Tuple[np.ndarra
     return resized_data[..., np.newaxis], labels
 
 #%% Wav2Vec
-def _calc_wav2vec(path: str) -> np.ndarray:
-    audio, sr = librosa.load(path)
-    MAX_DURATION = 3
-    SAMPLING_RATE = 12000
-    MAX_SEQ_LENGTH = MAX_DURATION * SAMPLING_RATE
-    feature_extractor = Wav2Vec2FeatureExtractor.from_pretrained("facebook/wav2vec2-base")
+# def _calc_wav2vec(path: str) -> np.ndarray:
+#     audio, sr = librosa.load(path)
+#     MAX_DURATION = 3
+#     SAMPLING_RATE = 12000
+#     MAX_SEQ_LENGTH = MAX_DURATION * SAMPLING_RATE
+#     feature_extractor = Wav2Vec2FeatureExtractor.from_pretrained("facebook/wav2vec2-base")
     
-    if len(audio) < MAX_SEQ_LENGTH:
-        audio = np.pad(audio, (0, MAX_SEQ_LENGTH - len(audio)))
-    else:
-        audio = audio[:MAX_SEQ_LENGTH]
-    inputs = feature_extractor(audio, sampling_rate=16000, return_tensors="np", padding=True, truncation=True, max_length=1500)
-    # return np.array(inputs.input_values).astype('float32')
-    out = np.array(inputs.input_values).astype('float16')
+#     if len(audio) < MAX_SEQ_LENGTH:
+#         audio = np.pad(audio, (0, MAX_SEQ_LENGTH - len(audio)))
+#     else:
+#         audio = audio[:MAX_SEQ_LENGTH]
+#     inputs = feature_extractor(audio, sampling_rate=16000, return_tensors="np", padding=True, truncation=True, max_length=1500)
+#     # return np.array(inputs.input_values).astype('float32')
+#     out = np.array(inputs.input_values).astype('float16')
     
-    return out
+#     return out
 
 
-def calc_wav2vec(protocol_df: pd.DataFrame, path: str, size = -1) -> Tuple[np.ndarray, np.ndarray]:
-    samples = list(protocol_df["utt_id"])
-    if size > 0:
-        samples = samples[:size]
+# def calc_wav2vec(protocol_df: pd.DataFrame, path: str, size = -1) -> Tuple[np.ndarray, np.ndarray]:
+#     samples = list(protocol_df["utt_id"])
+#     if size > 0:
+#         samples = samples[:size]
     
-    data = []
-    for i, sample in enumerate(tqdm(samples)):
-        full_path = path + sample + ".flac"
-        data.append(_calc_wav2vec(full_path))
+#     data = []
+#     for i, sample in enumerate(tqdm(samples)):
+#         full_path = path + sample + ".flac"
+#         data.append(_calc_wav2vec(full_path))
     
-    labels = _extract_label(protocol_df, len(data))
+#     labels = _extract_label(protocol_df, len(data))
 
-    data = np.float16(data)
-    return data[..., np.newaxis], labels
+#     data = np.float16(data)
+#     return data[..., np.newaxis], labels
 
 
 

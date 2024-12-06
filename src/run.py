@@ -2,7 +2,7 @@ import pandas as pd
 from keras.callbacks import EarlyStopping, ModelCheckpoint
 from keras.optimizers import Adam
 
-from feature import calc_cqt, calc_stft, calc_wav2vec, save_feature, load_feature
+from feature import calc_cqt, calc_stft, save_feature, load_feature
 from metrics import calculate_eer, calculate_classifier_metrics
 from augment import augment_real_audio
 from sklearn.utils import shuffle
@@ -57,7 +57,7 @@ feature_type = args.feature
 feature_xtract_map = {
     'cqt': calc_cqt,
     'stft': calc_stft,
-    'wav2vec': calc_wav2vec
+    # 'wav2vec': calc_wav2vec
 }
 if feature_type not in feature_xtract_map:
     raise ValueError(f'feature type "{feature_type}" not exist!')
@@ -118,6 +118,7 @@ if __name__ == "__main__":
 
     # Augmentation
     if args.augment:
+        print("Augmenting data...")
         # Augment the training data
         augmented_audio_data, augmented_labels = augment_real_audio(x_train, y_train)
 
