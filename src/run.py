@@ -2,13 +2,15 @@ import pandas as pd
 from keras.callbacks import EarlyStopping, ModelCheckpoint
 from keras.optimizers import Adam
 
-from feature import calc_cqt, calc_stft, calc_wav2vec, save_feature, load_feature
+from feature import calc_cqt, calc_stft, save_feature, load_feature
+from feature import calc_wav2vec
 from metrics import calculate_eer, calculate_classifier_metrics
 from sklearn.utils import shuffle
 
 from model.lcnn import build_lcnn
 from model.lcnn_lstm import build_lcnn_lstm
 from model.resnet18 import build_resnet
+# from model.resnet18_lstm import build_resnet_lstm
 
 import argparse
 import numpy as np
@@ -55,7 +57,7 @@ feature_type = args.feature
 feature_xtract_map = {
     'cqt': calc_cqt,
     'stft': calc_stft,
-    'wav2vec': calc_wav2vec
+    # 'wav2vec': calc_wav2vec
 }
 if feature_type not in feature_xtract_map:
     raise ValueError(f'feature type "{feature_type}" not exist!')
@@ -65,7 +67,8 @@ model_type = args.model
 model_build_map = {
     'lcnn': build_lcnn,
     'lcnn-lstm': build_lcnn_lstm,
-    'resnet': build_resnet
+    'resnet': build_resnet,
+    # 'resnet-lstm': build_resnet_lstm
 }
 if model_type not in model_build_map:
     raise ValueError(f'model type "{model_type}" not exist!')
@@ -78,7 +81,7 @@ protocol_eval = "./protocol/eval_protocol.csv"
 # Choose access type PA or LA.
 # Replace 'asvspoof_database/ to your database path.
 access_type = "LA"
-path_to_database = "/home/uniqname/audio-deepfake-detection/" + access_type
+path_to_database = "/home/tzujohsu/audio-deepfake/" + access_type
 path_tr = path_to_database + "/ASVspoof2019_" + access_type + "_train/flac/"
 path_dev = path_to_database + "/ASVspoof2019_" + access_type + "_dev/flac/"
 path_eval = path_to_database + "/ASVspoof2019_" + access_type + "_eval/flac/"
@@ -96,11 +99,11 @@ if __name__ == "__main__":
         x_train, y_train = load_feature(cache + f'/{feature_type}-train.npz')
     else:
         x_train, y_train = feature_xtract_map[feature_type](df_tr, path_tr, args.datasize)
-        if args.savedata: save_feature(x_train, y_train, cache + '/train.npz')
+        if args.savedata: save_feature(x_train, y_train, cache + f'/{feature_type}-train.npz')
     
     x_train, y_train = shuffle(x_train, y_train)
     if args.datasize > 0: x_train, y_train = x_train[:args.datasize], y_train[:args.datasize]
-
+    print(x_train.shape, y_train.shape)
     
     
     print("Extracting dev data...")

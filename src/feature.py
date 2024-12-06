@@ -7,7 +7,7 @@ import pandas as pd
 import scipy
 from tqdm import tqdm
 
-from transformers import AutoFeatureExtractor, Wav2Vec2FeatureExtractor, TFWav2Vec2Model, Wav2Vec2Processor
+# from transformers import AutoFeatureExtractor, Wav2Vec2FeatureExtractor, TFWav2Vec2Model, Wav2Vec2Processor
 
 #%% STFT
 def _preEmphasis(wave: np.ndarray, p=0.97) -> np.ndarray:
@@ -146,9 +146,10 @@ def _calc_wav2vec(path: str) -> np.ndarray:
         audio = np.pad(audio, (0, MAX_SEQ_LENGTH - len(audio)))
     else:
         audio = audio[:MAX_SEQ_LENGTH]
-    inputs = feature_extractor(audio, sampling_rate=16000, return_tensors="np", padding=True, truncation=True, max_length=1500)
+    inputs = feature_extractor(audio, sampling_rate=16000, return_tensors="np", padding=True, truncation=True, max_length=20000)
     # return np.array(inputs.input_values).astype('float32')
-    out = np.array(inputs.input_values).astype('float16')
+    out = np.array(inputs.input_values)
+    out = np.float16(out)
     
     return out
 
@@ -165,7 +166,7 @@ def calc_wav2vec(protocol_df: pd.DataFrame, path: str, size = -1) -> Tuple[np.nd
     
     labels = _extract_label(protocol_df, len(data))
 
-    data = np.float16(data)
+    data = np.array(data)
     return data[..., np.newaxis], labels
 
 
