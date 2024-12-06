@@ -103,6 +103,8 @@ class ResNet18_LSTM(Model):
         self.flat = Flatten()
         self.fc = Dense(num_classes, activation="softmax")
         self.fc2 = Dense(128, activation = 'relu')
+        self.lstm = LSTM(64, return_sequences=True)
+        self.att_pool = SelfAttentivePooling()
 
     def call(self, inputs):
         out = self.conv_1(inputs)
@@ -115,10 +117,10 @@ class ResNet18_LSTM(Model):
         # out = self.flat(out)
         # out = self.fc(out)
         x = TimeDistributed(Flatten())(out)
-        x = LSTM(64, return_sequences=True)(x)
-        x = SelfAttentivePooling()(x)
-        x = self.fc2(x)
-        x = BatchNormalization()(x)
+        x = self.lstm(x)
+        x = self.att_pool(x)
+        # x = self.fc2(x)
+        # x = BatchNormalization()(x)
         output = self.fc(x)
         return output
 

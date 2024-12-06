@@ -10,7 +10,7 @@ from sklearn.utils import shuffle
 from model.lcnn import build_lcnn
 from model.lcnn_lstm import build_lcnn_lstm
 from model.resnet18 import build_resnet
-# from model.resnet18_lstm import build_resnet_lstm
+from model.resnet18_lstm import build_resnet_lstm
 
 import argparse
 import numpy as np
@@ -57,7 +57,7 @@ feature_type = args.feature
 feature_xtract_map = {
     'cqt': calc_cqt,
     'stft': calc_stft,
-    # 'wav2vec': calc_wav2vec
+    'wav2vec': calc_wav2vec
 }
 if feature_type not in feature_xtract_map:
     raise ValueError(f'feature type "{feature_type}" not exist!')
@@ -68,7 +68,7 @@ model_build_map = {
     'lcnn': build_lcnn,
     'lcnn-lstm': build_lcnn_lstm,
     'resnet': build_resnet,
-    # 'resnet-lstm': build_resnet_lstm
+    'resnet-lstm': build_resnet_lstm
 }
 if model_type not in model_build_map:
     raise ValueError(f'model type "{model_type}" not exist!')
