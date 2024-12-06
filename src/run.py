@@ -4,6 +4,7 @@ from keras.optimizers import Adam
 
 from feature import calc_cqt, calc_stft, calc_wav2vec, save_feature, load_feature
 from metrics import calculate_eer, calculate_classifier_metrics
+from augment import augment_real_audio
 from sklearn.utils import shuffle
 
 from model.lcnn import build_lcnn
@@ -38,6 +39,7 @@ def parse_arguments():
     parser.add_argument('--datasize', '-s', type=int, default=-1, help='data size')
     parser.add_argument('--verbose', type=int, default=-0, help='verbose 0 (silent), 1 (detailed output)')
     parser.add_argument('--savedata', type=int, default=1, help='save your data as npz')
+    parser.add_argument('--augment', type=int, default=0, help='augment the data before training')
 
     args = parser.parse_args()
     return args
@@ -112,7 +114,24 @@ if __name__ == "__main__":
 
     x_val, y_val = shuffle(x_val, y_val)
     if args.datasize > 0: x_val, y_val = x_val[:args.datasize], y_val[:args.datasize]
+
+
+    # Augmentation
+    if args.augment:
+        # Augment the training data
+        augmented_audio_data, augmented_labels = augment_real_audio(x_train, y_train)
+
+        # Combine the augmented data and the original data
+        x_train = np.concatenate((x_train, augmented_audio_data))
+        y_train = np.concatenate((y_train, augmented_labels))
+
+        # Shuffle the combined training data
+        indices = np.arange(len(x_train))
+        np.random.shuffle(indices)
+        x_train = x_train[indices]
+        y_train = y_train[indices]
         
+
     print('Model Building...')
     input_shape = x_train.shape[1:]
     model = model_build_map[model_type](input_shape)
