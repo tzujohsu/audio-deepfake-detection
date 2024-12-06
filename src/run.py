@@ -4,7 +4,7 @@ from keras.optimizers import Adam
 
 from feature import calc_cqt, calc_stft, save_feature, load_feature
 from metrics import calculate_eer, calculate_classifier_metrics
-from augment import augment_real_audio
+from augment import augment_audio
 from sklearn.utils import shuffle
 
 from model.lcnn import build_lcnn
@@ -51,6 +51,8 @@ args = parse_arguments()
 print(f'*********** Job ID: {job_id} ***********')
 for k,v in args.__dict__.items(): print(f'> args: {CRED} {k} {CEND}, value: {CRED} {v} {CEND}')
 
+# aug type
+aug = "" if args.augment == 0 else "AUG"
 
 # feature type
 feature_type = args.feature
@@ -94,11 +96,17 @@ if __name__ == "__main__":
 
     
     print("Extracting train data...")
-    if os.path.exists(cache + f'/{feature_type}-train.npz'):
-        x_train, y_train = load_feature(cache + f'/{feature_type}-train.npz')
+
+    if os.path.exists(cache + f'/{feature_type}-train{aug}.npz'):
+        x_train, y_train = load_feature(cache + f'/{feature_type}-train{aug}.npz')
+        
     else:
         x_train, y_train = feature_xtract_map[feature_type](df_tr, path_tr, args.datasize)
-        if args.savedata: save_feature(x_train, y_train, cache + '/train.npz')
+        if arg.augment:
+            x_aug, y_aug = feature_xtract_map[feature_type](df_tr, path_tr, args.datasize)
+            x_train = np.concatenate((x_train, x_aug))
+            y_train = np.concatenate((y_train, y_aug))
+        if args.savedata: save_feature(x_train, y_train, cache + f'/{feature_type}-train{aug}.npz')
     
     x_train, y_train = shuffle(x_train, y_train)
     if args.datasize > 0: x_train, y_train = x_train[:args.datasize], y_train[:args.datasize]
