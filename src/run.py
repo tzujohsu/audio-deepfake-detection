@@ -4,8 +4,8 @@ from keras.optimizers import Adam
 
 from feature import calc_cqt, calc_stft, save_feature, load_feature
 from metrics import calculate_eer, calculate_classifier_metrics
-from augment import augment_audio
 from sklearn.utils import shuffle
+from augment import *
 
 from model.lcnn import build_lcnn
 from model.lcnn_lstm import build_lcnn_lstm
@@ -78,14 +78,16 @@ if model_type not in model_build_map:
 protocol_tr = "./protocol/train_protocol.csv"
 protocol_dev = "./protocol/dev_protocol.csv"
 protocol_eval = "./protocol/eval_protocol.csv"
+protocal_aug = "./protocol/aug_protocol.csv"
 
 # Choose access type PA or LA.
 # Replace 'asvspoof_database/ to your database path.
 access_type = "LA"
-path_to_database = "/home/uniqname/audio-deepfake-detection/" + access_type
+path_to_database = "/home/tzujohsu/audio-deepfake/" + access_type
 path_tr = path_to_database + "/ASVspoof2019_" + access_type + "_train/flac/"
 path_dev = path_to_database + "/ASVspoof2019_" + access_type + "_dev/flac/"
 path_eval = path_to_database + "/ASVspoof2019_" + access_type + "_eval/flac/"
+path_aug = path_to_database + "/ASVspoof2019_" + access_type + "_aug/flac/"
 
 #%%
 
@@ -93,6 +95,7 @@ if __name__ == "__main__":
 
     df_tr = pd.read_csv(protocol_tr)
     df_dev = pd.read_csv(protocol_dev)
+    df_aug = pd.read_csv(protocal_aug)
 
     
     print("Extracting train data...")
@@ -102,8 +105,8 @@ if __name__ == "__main__":
         
     else:
         x_train, y_train = feature_xtract_map[feature_type](df_tr, path_tr, args.datasize)
-        if arg.augment:
-            x_aug, y_aug = feature_xtract_map[feature_type](df_tr, path_tr, args.datasize)
+        if args.augment:
+            x_aug, y_aug = feature_xtract_map[feature_type](df_aug, path_aug, args.datasize)
             x_train = np.concatenate((x_train, x_aug))
             y_train = np.concatenate((y_train, y_aug))
         if args.savedata: save_feature(x_train, y_train, cache + f'/{feature_type}-train{aug}.npz')
@@ -111,7 +114,7 @@ if __name__ == "__main__":
     x_train, y_train = shuffle(x_train, y_train)
     if args.datasize > 0: x_train, y_train = x_train[:args.datasize], y_train[:args.datasize]
 
-    
+     
     
     print("Extracting dev data...")
     if os.path.exists(cache + f'/{feature_type}-dev.npz'):
@@ -124,21 +127,21 @@ if __name__ == "__main__":
     if args.datasize > 0: x_val, y_val = x_val[:args.datasize], y_val[:args.datasize]
 
 
-    # Augmentation
-    if args.augment:
-        print("Augmenting data...")
-        # Augment the training data
-        augmented_audio_data, augmented_labels = augment_real_audio(x_train, y_train)
+    # # Augmentation
+    # if args.augment:
+    #     print("Augmenting data...")
+    #     # Augment the training data
+    #     augmented_audio_data, augmented_labels = augment_real_audio(x_train, y_train)
 
-        # Combine the augmented data and the original data
-        x_train = np.concatenate((x_train, augmented_audio_data))
-        y_train = np.concatenate((y_train, augmented_labels))
+    #     # Combine the augmented data and the original data
+    #     x_train = np.concatenate((x_train, augmented_audio_data))
+    #     y_train = np.concatenate((y_train, augmented_labels))
 
-        # Shuffle the combined training data
-        indices = np.arange(len(x_train))
-        np.random.shuffle(indices)
-        x_train = x_train[indices]
-        y_train = y_train[indices]
+    #     # Shuffle the combined training data
+    #     indices = np.arange(len(x_train))
+    #     np.random.shuffle(indices)
+    #     x_train = x_train[indices]
+    #     y_train = y_train[indices]
         
 
     print('Model Building...')

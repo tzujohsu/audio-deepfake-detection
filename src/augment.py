@@ -1,8 +1,9 @@
 from time import time
-
+import soundfile as sf
 import numpy as np
 import librosa
 from tqdm import tqdm
+import os
 
 #%% Augmentations
 def time_stretch(audio, rate=1.0):
@@ -108,83 +109,84 @@ def _pad_augmented_audio(augmented, max_seq_length):
     return augmented
 
 
-def load_audio_files(files):
+def load_audio_files(files, labels):
     audio_data = []
+    DATASET_PATH = '/home/tzujohsu/audio-deepfake/LA/ASVspoof2019_LA_train/flac'
+    for i, file_name in tqdm(enumerate(files), total=len(files)):
+        if labels[i] == 1:
+            file_path = os.path.join(DATASET_PATH, file_name + ".flac")
+            
+            # Load audio file using librosa
+            audio, _ = librosa.load(file_path)
+            # if len(audio) < MAX_SEQ_LENGTH:
+            #     audio = np.pad(audio, (0, MAX_SEQ_LENGTH - len(audio)))
+            # else:
+            #     audio = audio[:MAX_SEQ_LENGTH]
+            audio_data.append(audio)
 
-    for file_name in tqdm(files, total=len(files)):
-      file_path = os.path.join(DATASET_PATH, file_name + ".flac")
-
-      # Load audio file using librosa
-      audio, _ = librosa.load(file_path, sr=SAMPLE_RATE, duration=MAX_DURATION)
-      if len(audio) < MAX_SEQ_LENGTH:
-          audio = np.pad(audio, (0, MAX_SEQ_LENGTH - len(audio)))
-      else:
-          audio = audio[:MAX_SEQ_LENGTH]
-      audio_data.append(audio)
-
-    return np.array(audio_data)
+    return (audio_data)
 
 
-import soundfile as sf
 
-if __name__ == "__main__":
-    augmented_folder = 'ASVspoof2019_LA_aug/flac'
-    if not os.path.exists('./LA/'+augmented_folder):
-        os.makedirs(augmented_folder)
 
-    # Get all the real data from the training set
-    LABEL_FILE_PATH = "LA/ASVspoof2019_LA_cm_protocols/ASVspoof2019.LA.cm.train.trn.txt"
-    speakers = []; filenames = []; labels = []
+# if __name__ == "__main__":
+# augmented_folder = 'ASVspoof2019_LA_aug/flac'
+# if not os.path.exists('./LA/'+augmented_folder):
+#     os.makedirs(augmented_folder)
 
-    with open(LABEL_FILE_PATH, 'r') as label_file:
-        lines = label_file.readlines()
+# Get all the real data from the training set
 
-    for line in lines:
-        parts = line.strip().split()
-        speakers.append(parts[0])
-        filenames.append(parts[1])
+# LABEL_FILE_PATH = "/home/tzujohsu/audio-deepfake/LA/ASVspoof2019_LA_cm_protocols/ASVspoof2019.LA.cm.train.trn.txt"
+# speakers = []; filenames = []; labels = []
 
-        label = 1 if parts[-1] == "bonafide" else 0
-        labels.append(label)
+# with open(LABEL_FILE_PATH, 'r') as label_file:
+#     lines = label_file.readlines()
 
-    audio_data = load_audio_files(filenames)
+# for line in lines:
+#     parts = line.strip().split()
+#     speakers.append(parts[0])
+#     filenames.append(parts[1])
+#     label = 1 if parts[-1] == "bonafide" else 0
+#     labels.append(label)
 
-    # Tuple: (speaker, filename, audio data, label)
-    data = list(zip(speakers, filenames, audio_data, labels))
+# audio_data = load_audio_files(filenames, labels)
 
-    protocol_data = []
+# # Tuple: (speaker, filename, audio data, label)
+# data = list(zip(speakers, filenames, audio_data, labels))
 
-    # Iterate through all data
-    for speaker, filename, audio, label in tqdm(data):
-        #  Augment the real data
-        if label == 1:
-            augmented_data = _pad_augmented_audio(time_stretch(audio, rate=np.random.uniform(0.8, 1.2)), max_seq_length)
-            sf.write(f"./LA/ASVspoof2019_LA_aug/flac/{filename}_aug_1", augmented_data)
-            protocol_data.append([speaker, f"{filename}_aug_1", '-', '-', 'bonafide'])
+# protocol_data = []
 
-            augmented_data = _pad_augmented_audio(pitch_shift(audio, sr, n_steps=np.random.randint(-2, 3)), max_seq_length)
-            sf.write(f"./LA/ASVspoof2019_LA_aug/flac/{filename}_aug_2", augmented_data)
-            protocol_data.append([speaker, f"{filename}_aug_2", '-', '-', 'bonafide'])
+# # Iterate through all data
+# for speaker, filename, audio, label in tqdm(data):
+#     #  Augment the real data
+#     if label == 1:
+#         augmented_data = time_stretch(audio, rate=np.random.uniform(0.8, 1.2))
+#         sf.write(f"/home/tzujohsu/audio-deepfake/LA/ASVspoof2019_LA_aug/flac/{filename}_aug_1.flac", augmented_data, 16000, format = 'FLAC')
+#         protocol_data.append([speaker, f"{filename}_aug_1", '-', '-', 'bonafide'])
 
-            augmented_data = _pad_augmented_audio(add_noise(audio, noise_factor=np.random.uniform(0.001, 0.01)), max_seq_length)
-            sf.write(f"./LA/ASVspoof2019_LA_aug/flac/{filename}_aug_3", augmented_data)
-            protocol_data.append([speaker, f"{filename}_aug_3", '-', '-', 'bonafide'])
+#         augmented_data = pitch_shift(audio, sr=16000, n_steps=np.random.randint(-2, 3))
+#         sf.write(f"/home/tzujohsu/audio-deepfake/LA/ASVspoof2019_LA_aug/flac/{filename}_aug_2.flac", augmented_data, 16000, format = 'FLAC')
+#         protocol_data.append([speaker, f"{filename}_aug_2", '-', '-', 'bonafide'])
 
-            augmented_data = _pad_augmented_audio(time_shift(audio, shift_max=np.random.uniform(0.1, 0.2)), max_seq_length)
-            sf.write(f"./LA/ASVspoof2019_LA_aug/flac/{filename}_aug_4", augmented_data)
-            protocol_data.append([speaker, f"{filename}_aug_4", '-', '-', 'bonafide'])
+#         augmented_data = add_noise(audio, noise_factor=np.random.uniform(0.001, 0.01))
+#         sf.write(f"/home/tzujohsu/audio-deepfake/LA/ASVspoof2019_LA_aug/flac/{filename}_aug_3.flac", augmented_data, 16000, format = 'FLAC')
+#         protocol_data.append([speaker, f"{filename}_aug_3", '-', '-', 'bonafide'])
 
-            augmented_data = _pad_augmented_audio(volume_scaling(audio, gain=np.random.uniform(0.7, 1.3)), max_seq_length)
-            sf.write(f"./LA/ASVspoof2019_LA_aug/flac/{filename}_aug_5", augmented_data)
-            protocol_data.append([speaker, f"{filename}_aug_5", '-', '-', 'bonafide'])
+#         augmented_data = time_shift(audio, shift_max=np.random.uniform(0.1, 0.2))
+#         sf.write(f"/home/tzujohsu/audio-deepfake/LA/ASVspoof2019_LA_aug/flac/{filename}_aug_4.flac", augmented_data, 16000, format = 'FLAC')
+#         protocol_data.append([speaker, f"{filename}_aug_4", '-', '-', 'bonafide'])
 
-            # original_file_name = ()
-            # save it as f"{original_file_name}_aug_{i}"
+#         augmented_data = volume_scaling(audio, gain=np.random.uniform(0.7, 1.3))
+#         sf.write(f"/home/tzujohsu/audio-deepfake/LA/ASVspoof2019_LA_aug/flac/{filename}_aug_5.flac", augmented_data, 16000, format = 'FLAC')
+#         protocol_data.append([speaker, f"{filename}_aug_5", '-', '-', 'bonafide'])
 
-    # create protocol file with columns -> speaker_id,utt_id,config,attacks,key
-        # utt_id (file_name), key -> bonafide
+#         # original_file_name = ()
+#         # save it as f"{original_file_name}_aug_{i}"
 
-    filename = 'LA/ASVspoof2019_LA_cm_protocols/ASVspoof2019_aug.LA.cm.train.trn.txt'
-    with open(filename, "w") as file:
-        for row in protocol_data:
-            file.write(' '.join(map(str, row)) + '\n')
+# # create protocol file with columns -> speaker_id,utt_id,config,attacks,key
+#     # utt_id (file_name), key -> bonafide
+
+# filename = '/home/tzujohsu/audio-deepfake/LA/ASVspoof2019_LA_cm_protocols/ASVspoof2019_aug.LA.cm.train.trn.txt'
+# with open(filename, "w") as file:
+#     for row in protocol_data:
+#         file.write(' '.join(map(str, row)) + '\n')

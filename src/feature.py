@@ -88,6 +88,7 @@ def _calc_cqt(path: str) -> np.ndarray:
     Returns:
         np.ndarray: A CQT spectrogram.
     """
+    
     y, sr = librosa.load(path)
     y = _preEmphasis(y)
     cqt_spec = librosa.core.cqt(y, sr=sr)

@@ -26,4 +26,4 @@ def convert_txt_to_csv(path_txt: str, path_csv: str):
 
 if __name__ == "__main__":
     # Set your own path to `path_txt`
-    convert_txt_to_csv("/home/tzujohsu/audio-deepfake/LA/ASVspoof2019_LA_cm_protocols/ASVspoof2019.LA.cm.train.trn.txt", "./train_protocol.csv")
+    convert_txt_to_csv("/home/tzujohsu/audio-deepfake/LA/ASVspoof2019_LA_cm_protocols/ASVspoof2019_aug.LA.cm.train.trn.txt", "./aug_protocol.csv")
