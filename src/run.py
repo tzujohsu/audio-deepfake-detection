@@ -10,6 +10,7 @@ from augment import *
 from model.lcnn import build_lcnn
 from model.lcnn_lstm import build_lcnn_lstm
 from model.resnet18 import build_resnet
+from model.resnet18_lstm import build_resnet_lstm
 
 import argparse
 import numpy as np
@@ -69,7 +70,8 @@ model_type = args.model
 model_build_map = {
     'lcnn': build_lcnn,
     'lcnn-lstm': build_lcnn_lstm,
-    'resnet': build_resnet
+    'resnet': build_resnet,
+    'resnet-lstm': build_resnet_lstm
 }
 if model_type not in model_build_map:
     raise ValueError(f'model type "{model_type}" not exist!')
@@ -213,6 +215,6 @@ if __name__ == "__main__":
         })
 
     # Save the DataFrame to a CSV file
-    results_df.to_csv(f'{log}/predictions-{model_type}-{feature_type}-{job_id}.csv', index=False)
+    results_df.to_csv(f'{log}/predictions-{model_type}-{feature_type}{aug}-{job_id}.csv', index=False)
 
     print("You've made it! Have a wonderful day")

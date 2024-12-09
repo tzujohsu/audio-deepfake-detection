@@ -9,12 +9,12 @@ from tqdm import tqdm
 
 # from transformers import AutoFeatureExtractor, Wav2Vec2FeatureExtractor, TFWav2Vec2Model, Wav2Vec2Processor
 
-#%% STFT
 def _preEmphasis(wave: np.ndarray, p=0.97) -> np.ndarray:
     """Pre-Emphasis"""
     return scipy.signal.lfilter([1.0, -p], 1, wave)
 
 
+#%% STFT
 def _calc_stft(path: str) -> np.ndarray:
     """Calculate STFT with librosa.
 
@@ -91,7 +91,7 @@ def _calc_cqt(path: str) -> np.ndarray:
     
     y, sr = librosa.load(path)
     y = _preEmphasis(y)
-    cqt_spec = librosa.core.cqt(y, sr=sr)
+    cqt_spec = librosa.core.cqt(y, sr=sr, hop_length=256, n_bins=100)  
     cq_db = librosa.amplitude_to_db(np.abs(cqt_spec))  # Amplitude to dB.
     return cq_db
 
@@ -108,7 +108,7 @@ def calc_cqt(protocol_df: pd.DataFrame, path: str, size = -1) -> Tuple[np.ndarra
     if size > 0:
         samples = samples[:size]
 
-    max_width = 200  # for resizing cqt spectrogram.
+    max_width = 280  # for resizing cqt spectrogram.
 
     for i, sample in enumerate(tqdm(samples)):
         full_path = path + sample + ".flac"
