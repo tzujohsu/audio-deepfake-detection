@@ -5,8 +5,10 @@ __pycache__/
 
 # project files
 LA/
+ML/
 src/poc.ipynb
 src/__cache__/
 src/__log__/
 src/my_job.sh
 src/shortcut.txt
+src/poc.ipynb

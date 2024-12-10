@@ -9,8 +9,6 @@ from augment import *
 
 from model.lcnn import build_lcnn
 from model.lcnn_lstm import build_lcnn_lstm
-from model.resnet18 import build_resnet
-from model.resnet18_lstm import build_resnet_lstm
 
 import argparse
 import numpy as np
@@ -60,7 +58,7 @@ feature_type = args.feature
 feature_xtract_map = {
     'cqt': calc_cqt,
     'stft': calc_stft,
-    # 'wav2vec': calc_wav2vec
+
 }
 if feature_type not in feature_xtract_map:
     raise ValueError(f'feature type "{feature_type}" not exist!')
@@ -70,8 +68,7 @@ model_type = args.model
 model_build_map = {
     'lcnn': build_lcnn,
     'lcnn-lstm': build_lcnn_lstm,
-    'resnet': build_resnet,
-    'resnet-lstm': build_resnet_lstm
+    
 }
 if model_type not in model_build_map:
     raise ValueError(f'model type "{model_type}" not exist!')
@@ -127,24 +124,7 @@ if __name__ == "__main__":
 
     x_val, y_val = shuffle(x_val, y_val)
     if args.datasize > 0: x_val, y_val = x_val[:args.datasize], y_val[:args.datasize]
-
-
-    # # Augmentation
-    # if args.augment:
-    #     print("Augmenting data...")
-    #     # Augment the training data
-    #     augmented_audio_data, augmented_labels = augment_real_audio(x_train, y_train)
-
-    #     # Combine the augmented data and the original data
-    #     x_train = np.concatenate((x_train, augmented_audio_data))
-    #     y_train = np.concatenate((y_train, augmented_labels))
-
-    #     # Shuffle the combined training data
-    #     indices = np.arange(len(x_train))
-    #     np.random.shuffle(indices)
-    #     x_train = x_train[indices]
-    #     y_train = y_train[indices]
-        
+ 
 
     print('Model Building...')
     input_shape = x_train.shape[1:]
@@ -176,7 +156,7 @@ if __name__ == "__main__":
         callbacks=[es, cp_cb],
         verbose=args.verbose,
     )
-    # print("Training history: ", history)
+    # print("Training history: ", history.history)
 
     del x_train, x_val
     print('Training done!')
