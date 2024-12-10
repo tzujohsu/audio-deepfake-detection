@@ -1,59 +1,5 @@
 ## Deepfake Audio Detection
 
-### Cloning the Repository and GitHub Commands Introduction
-
-The first thing you'll need to do is clone the repository. You will only need to do this once. In your local terminal, enter the following command:
-
-```bash
-git clone https://github.com/tzujohsu/audio-deepfake-detection.git
-```
-
-To switch into this newly cloned local repo, use the following command:
-
-```bash
-cd audio-deepfake-detection
-```
-
-It is good practice before you make any local changes to always retrieve or "pull", any changes that others have made. You can do so with the following command:
-
-```bash
-git pull
-```
-
-After making local changes and testing out your code, you can send, or "push", your changes.
-
-First, add the files you changed with the following command: 
-
-```bash
-git add -u
-```
-
-If you *created* any new files instead of or in addition to changing existing files, use the following command:
-
-```bash
-git add [filename]
-```
-
-or
-
-```bash
-git add --all
-```
-
-Next, commit your files. You can do so with this command:
-
-```bash
-git commit -m "[a brief message describing your changes]"
-```
-
-Finally, push your changes with the following command:
-
-```bash
-git push origin main
-```
-
-If all goes well, your changes will be pushed to the repo where everyone can see and pull them.
-
 ### Setup
 Install the required dependencies. Download the GPU version of these package if required.
 ``` bash
@@ -82,6 +28,7 @@ audio-deepfake
 └── src
     ├── feature.py
     ├── metrics.py
+    ├── augment.py
     ├── model
     ├── protocol
     ├── requirements.txt
@@ -116,6 +63,8 @@ python run.py \
     --batch 32 \
     --datasize 1000 \
     --verbose 1 \
-    --savedata False
+    --savedata False \
 ```
+
+Aditionally, you can use the augment.py code to perform data augmentation. When training the model, just add the `--augment 1` argument.
 
