@@ -1,4 +1,7 @@
-# pylint: disable=E0402,W0622
+"""
+This code is modified from https://github.com/ozora-ogino/LCNN
+"""
+
 from typing import List
 
 import tensorflow as tf

@@ -135,6 +135,7 @@ if __name__ == "__main__":
         loss="sparse_categorical_crossentropy",
         metrics=["accuracy"],
     )
+    print(model.summary())
 
     # Callbacks
     es = EarlyStopping(monitor="val_loss", patience=8, verbose=args.verbose)

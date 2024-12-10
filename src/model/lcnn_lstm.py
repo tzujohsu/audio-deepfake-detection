@@ -1,4 +1,3 @@
-# pylint: disable=E0402,W0622
 from typing import List
 
 import tensorflow as tf
