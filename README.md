@@ -42,7 +42,7 @@ Before running the experiment, remember to change the path to include your uniqn
 path_to_database = "/home/[uniqname]/audio-deepfake-detection/" + access_type
 ```
 
-Run the experiment by the following command:
+Train the model and evaluate on AsvSpoof 2019 eval dataset by the following command. EER, Accuracy, F1, precision, recall and auc score are provided.
 
 ``` bash
 python run.py \
