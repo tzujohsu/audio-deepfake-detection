@@ -2,7 +2,7 @@
 
 
 <p align="center">
-    <img src="cqt-feature.png" alt="cqt feature mel spectrogram" width="400">
+    <img src="diagram.png" alt="method flow chart" width="800">
 </p>
 
 ### Setup
