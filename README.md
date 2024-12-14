@@ -1,5 +1,10 @@
 ## Deepfake Audio Detection
 
+
+<p align="center">
+    <img src="cqt-feature.png" alt="cqt feature mel spectrogram" width="400">
+</p>
+
 ### Setup
 Install the required dependencies. Download the GPU version of these package if required.
 ``` bash
